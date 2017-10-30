@@ -20,21 +20,26 @@ class FolderCollect(Device):
     def init_device(self):
         Device.init_device(self)
         self.set_state(DevState.ON)
-        # to be changed by: /beamlines/bl09/projects/rawdata
-        self._root_folder = "/beamlines/bl09/controls/DEFAULT_USER_FOLDER/"
+        self._root_folder = "/beamlines/bl09/controls/DEFAULT_USER_FOLDER"
         self._folder_num = 0
-        self._user_folder = self._root_folder + "data_" + str(self._folder_num)
-        os.system("mkdir -p %s" % self._user_folder)
+        self._user_folder = self._root_folder + "/data_" + str(self._folder_num)
+        os.system("mkdir -p %s" % self._root_folder)
 
         # This is the link name (not a folder): 
         # It is the place that has to be indicated in the XMController SW
         # to store the data:
+        #self._all_files_link = "/beamlines/bl09/controls/BL09_RAWDATA"
         self._all_files_link = "/beamlines/bl09/controls/BL09_RAWDATA"
 
         # The data will be distributed in different folders thanks to setting
         # the folder number. All data stored in the symbolic link, 
         # will be stored in the user folder.
-        os.system("ln -s %s %s" % (self._user_folder, self._all_files_link))
+        # Relative path shall be used in the symbolic link in order to be read
+        # from Windows OS (even if created in Linux OS).
+        self.user_folder_relative_path = self._user_folder.replace(
+                                                       "/beamlines/bl09", "..")
+        os.system("ln -s %s %s" % (self.user_folder_relative_path, 
+                                   self._all_files_link))
 
     def get_RootFolder(self):
         return self._root_folder
@@ -51,7 +56,11 @@ class FolderCollect(Device):
         self._user_folder = self._root_folder + "/data_" + str(int(folder_num))
         os.system("rm %s" % self._all_files_link)
         os.system("mkdir -p %s" % self._user_folder)
-        os.system("ln -s %s %s" % (self._user_folder, self._all_files_link))
+
+        self.user_folder_relative_path = self._user_folder.replace(
+                                                       "/beamlines/bl09", "..")
+        os.system("ln -s %s %s" % (self.user_folder_relative_path, 
+                                   self._all_files_link))
         print("Folder set to %s" % self._user_folder)
 
     def delete_device(self):
